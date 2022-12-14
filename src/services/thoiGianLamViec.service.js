@@ -17,6 +17,7 @@ const getLichLamViecBacSi = async (req, res) => {
     return res.status(200).json({
       data: rows,
     });
+    
   } catch (error) {
     return res.status(404).json({ err: error });
   }

@@ -10,9 +10,7 @@ const getThoiGianLamViecController = async (req, res) => {
 const getLichLamViecBacSiController = async (req, res) => {
   await getLichLamViecBacSi(req, res);
 };
-const loginController = async (req, res) => {
-  await loginService(req.body, res);
-};
+ 
 
 module.exports = {
   getThoiGianLamViecController,

@@ -99,6 +99,30 @@ const editProfileDoctor = async (req, res) => {
   }
 };
 
+const editProfileUserService = async (req, res) => {
+  let { maND } = req.params;
+  console.log(req.body, maND);
+  const { hoTen, SDT, CMND, email, gioiTinh, diaChi, ngheNghiep, ngaySinh } =
+    req.body;
+
+  try {
+    await pool.execute(
+      'UPDATE tblnguoidung set ngaySinh= ?, hoTen = ?, SDT= ?, CMND= ?, email= ?, gioiTinh= ?, diaChi= ?, ngheNghiep= ? where maND = ?',
+      [ngaySinh, hoTen, SDT, CMND, email, gioiTinh, diaChi, ngheNghiep, maND]
+    );
+    const [rows, field] = await pool.execute(
+      `select * from tblnguoidung where maND = '${maND}'`
+    );
+    return res.json({
+      status: 'OK',
+      message: 'Cập nhật thông tin người dùng thành công',
+      user: rows,
+    });
+  } catch (error) {
+    return res.status(404).json({ err: error });
+  }
+};
+
 const getProfileDoctor = async (req, res) => {
   let { maND } = req.params;
 
@@ -117,10 +141,28 @@ const getProfileDoctor = async (req, res) => {
   }
 };
 
+const getAllUserService = async (req, res) => {
+  try {
+    const [rows, field] = await pool.execute(
+      `select * from tblnguoidung, tblquyen where tblnguoidung.maQuyen = tblquyen.maQuyen`
+    );
+    return res.json({
+      status: 'OK',
+      message: 'Danh sách người dùng',
+      users: rows,
+      totalData: rows.length,
+    });
+  } catch (error) {
+    return res.status(404).json({ err: error });
+  }
+};
+
 module.exports = {
   registerService,
   loginService,
   addProfileDoctor,
   editProfileDoctor,
   getProfileDoctor,
+  editProfileUserService,
+  getAllUserService,
 };
