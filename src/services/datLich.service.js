@@ -11,14 +11,32 @@ const getChoDatLichService = async (req, res) => {
 };
 const getPhieuKhamUserService = async (req, res) => {
   const { maND } = req.params;
-  const [rows, fields] = await pool.execute(
-    `SELECT ngaySinh, gioiTinh,tinhTrangDangKy, hoTen, SDT, thoiGianDky, thoiGianBatDau from tbldangkylichkham, tblnguoidung, tblthoigianlamviec WHERE tbldangkylichkham.maND = tblnguoidung.maND and tblthoigianlamviec.maTG = tbldangkylichkham.maThoiGian and tbldangkylichkham.maND = '${maND}'`
-  );
-  return res.status(200).json({
-    data: rows,
-    total: rows.length,
-  });
+  const { tinhTrangDky } = req.query;
+  try {
+    if (tinhTrangDky) {
+      const [rows, fields] = await pool.execute(
+        `SELECT ngaySinh, gioiTinh,tinhTrangDangKy, hoTen, SDT, thoiGianDky, thoiGianBatDau 
+        from tbldangkylichkham, tblnguoidung, tblthoigianlamviec 
+        WHERE tbldangkylichkham.maND = tblnguoidung.maND and tblthoigianlamviec.maTG = tbldangkylichkham.maThoiGian and tbldangkylichkham.maND = '${maND}' and tinhTrangDangKy = 'hoanThanh' ORDER by thoiGianDKy`
+      );
+      return res.status(200).json({
+        data: rows,
+        total: rows.length,
+      });
+    } else {
+      const [rows, fields] = await pool.execute(
+        `SELECT ngaySinh, gioiTinh,tinhTrangDangKy, hoTen, SDT, thoiGianDky, thoiGianBatDau
+        from tbldangkylichkham, tblnguoidung, tblthoigianlamviec WHERE
+        tbldangkylichkham.maND = tblnguoidung.maND and tblthoigianlamviec.maTG = tbldangkylichkham.maThoiGian and tbldangkylichkham.maND = '${maND}' and (tinhTrangDangKy = 'Pending' or tinhTrangDangKy = 'Success') ORDER by thoiGianDKy`
+      );
+      return res.status(200).json({
+        data: rows,
+        total: rows.length,
+      });
+    }
+  } catch (error) {}
 };
+
 const postDatLichService = async (req, res) => {
   const { maND, maThoiGian, tinhTrang, thoiGianDangKy } = req.body;
   console.log(req.body);
@@ -33,14 +51,54 @@ const postDatLichService = async (req, res) => {
 };
 
 const getAllDatLichService = async (req, res) => {
-  const { ngayDatLich } = req.query;
-  const [rows, fields] = await pool.execute(
-    `SELECT ngaySinh, tbldangkylichkham.maND, maThoiGian, gioiTinh,tinhTrangDangKy, hoTen, SDT, thoiGianDky, thoiGianBatDau from tbldangkylichkham, tblthoigianlamviec, tblnguoidung WHERE tblthoigianlamviec.maTG = tbldangkylichkham.maThoiGian and tblnguoidung.maND = tbldangkylichkham.maND and thoiGianDky = '${ngayDatLich}'`
-  );
-  return res.status(200).json({
-    data: rows,
-    total: rows.length,
-  });
+  const { ngayBatDau, ngayKetThuc, maThoiGian, tinhTrangDangKy } = req.query;
+  if (maThoiGian || tinhTrangDangKy) {
+    try {
+      if (tinhTrangDangKy) {
+        const [rows, fields] = await pool.execute(
+          `SELECT ngaySinh, tbldangkylichkham.maND, maThoiGian, gioiTinh,tinhTrangDangKy, hoTen, SDT, thoiGianDky, thoiGianBatDau
+          from tbldangkylichkham, tblthoigianlamviec, tblnguoidung
+          WHERE tblthoigianlamviec.maTG = tbldangkylichkham.maThoiGian and tblnguoidung.maND = tbldangkylichkham.maND and tinhTrangDangKy = '${tinhTrangDangKy}' and thoiGianDky BETWEEN '${ngayBatDau}' AND '${ngayKetThuc}' ORDER by thoiGianDKy`
+        );
+        return res.status(200).json({
+          data: rows,
+          total: rows.length,
+        });
+      } else if (maThoiGian) {
+        const [rows, fields] = await pool.execute(
+          `SELECT ngaySinh, tbldangkylichkham.maND, maThoiGian, gioiTinh,tinhTrangDangKy, hoTen, SDT, thoiGianDky, thoiGianBatDau
+          from tbldangkylichkham, tblthoigianlamviec, tblnguoidung
+          WHERE tblthoigianlamviec.maTG = tbldangkylichkham.maThoiGian and tblnguoidung.maND = tbldangkylichkham.maND and tbldangkylichkham.maThoiGian = '${maThoiGian}' and thoiGianDky BETWEEN '${ngayBatDau}' AND '${ngayKetThuc}' ORDER by thoiGianDKy`
+        );
+        return res.status(200).json({
+          data: rows,
+          total: rows.length,
+        });
+      } else {
+        const [rows, fields] = await pool.execute(
+          `SELECT ngaySinh, tbldangkylichkham.maND, maThoiGian, gioiTinh,tinhTrangDangKy, hoTen, SDT, thoiGianDky, thoiGianBatDau
+          from tbldangkylichkham, tblthoigianlamviec, tblnguoidung
+          WHERE tblthoigianlamviec.maTG = tbldangkylichkham.maThoiGian and tblnguoidung.maND = tbldangkylichkham.maND and tbldangkylichkham.maThoiGian = '${maThoiGian}'and tinhTrangDangKy = '${tinhTrangDangKy}' and thoiGianDky BETWEEN '${ngayBatDau}' AND '${ngayKetThuc}' ORDER by thoiGianDKy`
+        );
+        return res.status(200).json({
+          data: rows,
+          total: rows.length,
+        });
+      }
+    } catch (error) {}
+  } else {
+    try {
+      const [rows, fields] = await pool.execute(
+        `SELECT ngaySinh, tbldangkylichkham.maND, maThoiGian, gioiTinh,tinhTrangDangKy, hoTen, SDT, thoiGianDky, thoiGianBatDau
+        from tbldangkylichkham, tblthoigianlamviec, tblnguoidung
+        WHERE tblthoigianlamviec.maTG = tbldangkylichkham.maThoiGian and tblnguoidung.maND = tbldangkylichkham.maND and thoiGianDky BETWEEN '${ngayBatDau}' AND '${ngayKetThuc}' ORDER by thoiGianDKy`
+      );
+      return res.status(200).json({
+        data: rows,
+        total: rows.length,
+      });
+    } catch (error) {}
+  }
 };
 
 const editDatLichService = async (req, res) => {
@@ -51,7 +109,6 @@ const editDatLichService = async (req, res) => {
     `SELECT  * from tbldangkylichkham WHERE maND ='${maND}' and maThoiGian = ${maThoiGian} and thoiGianDky = '${thoiGianDky}'`
   );
 
-  console.log(tinhTrangDangKy, req.query);
   if (!rows) {
     return res.status(400).json({
       message: 'Không tìm thấy phiếu đặt lịch',
@@ -75,10 +132,38 @@ const editDatLichService = async (req, res) => {
   }
 };
 
+const getDatLichByMaThoiGian = async (req, res) => {
+  const { maThoiGian, thoiGianDky } = req.query;
+  try {
+    if (maThoiGian && thoiGianDky) {
+      const [rows, fields] = await pool.execute(
+        `SELECT ngaySinh, tbldangkylichkham.maND, maThoiGian, gioiTinh,tinhTrangDangKy, hoTen, SDT, thoiGianDky, thoiGianBatDau
+        from tbldangkylichkham, tblthoigianlamviec, tblnguoidung
+        WHERE tblthoigianlamviec.maTG = tbldangkylichkham.maThoiGian and tblnguoidung.maND = tbldangkylichkham.maND and tbldangkylichkham.maThoiGian = '${maThoiGian}' and thoiGianDky='${thoiGianDky}' and (tinhTrangDangKy='hoanThanh' or tinhTrangDangKy = 'Success') ORDER by thoiGianDKy`
+      );
+      return res.status(200).json({
+        data: rows,
+        total: rows.length,
+      });
+    } else {
+      return res.status(400).json({
+        status: 400,
+        message: 'Ma thoi gian hoac thoi gian bi sai',
+      });
+    }
+  } catch (error) {
+    return res.status(400).json({
+      status: 400,
+      message: 'Lỗi khi get đặt lịch',
+    });
+  }
+};
+
 module.exports = {
   getChoDatLichService,
   postDatLichService,
   getPhieuKhamUserService,
   getAllDatLichService,
   editDatLichService,
+  getDatLichByMaThoiGian,
 };
