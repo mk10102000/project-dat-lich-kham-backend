@@ -5,6 +5,8 @@ const {
   getAllDatLichController,
   editDatLichController,
   getDatLichByMaThoiGianController,
+  editNoteDatLichController,
+  countKhamThanhCongController,
 } = require('../controllers/datLich.controller');
 
 function datLichApi(router) {
@@ -13,9 +15,11 @@ function datLichApi(router) {
 
   router.get('/all-dat-lich', getAllDatLichController);
   router.get('/get-dat-lich-by-thoi-gian', getDatLichByMaThoiGianController);
+  router.get('/count-datlich', countKhamThanhCongController);
   router.post('/dat-lich', postDatLichControlller);
 
   router.put('/confirm-dat-lich', editDatLichController);
+  router.put('/edit-note', editNoteDatLichController);
 }
 
 module.exports = datLichApi;

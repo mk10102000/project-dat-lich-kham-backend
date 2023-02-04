@@ -6,6 +6,8 @@ const {
   addProfileDoctor,
   getProfileDoctor,
   getAllUserService,
+  editRoleService,
+  countNguoiDung,
 } = require('../services/user.service');
 
 const registerController = async (req, res) => {
@@ -33,6 +35,12 @@ const editProfileUserController = async (req, res) => {
 const getAllUserController = async (req, res) => {
   await getAllUserService(req, res);
 };
+const editRoleController = async (req, res) => {
+  await editRoleService(req, res);
+};
+const countNguoiDungController = async (req, res) => {
+  await countNguoiDung(req, res);
+};
 
 module.exports = {
   registerController,
@@ -42,4 +50,6 @@ module.exports = {
   getProfileDoctorController,
   editProfileUserController,
   getAllUserController,
+  editRoleController,
+  countNguoiDungController,
 };

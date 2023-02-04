@@ -5,6 +5,8 @@ const {
   getAllDatLichService,
   editDatLichService,
   getDatLichByMaThoiGian,
+  editNoteDatLichService,
+  countKhamThanhCong,
 } = require('../services/datLich.service');
 
 const getChoDatLichController = async (req, res) => {
@@ -27,6 +29,12 @@ const getDatLichByMaThoiGianController = async (req, res) => {
 const editDatLichController = async (req, res) => {
   await editDatLichService(req, res);
 };
+const editNoteDatLichController = async (req, res) => {
+  await editNoteDatLichService(req, res);
+};
+const countKhamThanhCongController = async (req, res) => {
+  await countKhamThanhCong(res);
+};
 
 module.exports = {
   getChoDatLichController,
@@ -35,4 +43,6 @@ module.exports = {
   getAllDatLichController,
   editDatLichController,
   getDatLichByMaThoiGianController,
+  editNoteDatLichController,
+  countKhamThanhCongController,
 };

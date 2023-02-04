@@ -1,11 +1,11 @@
 const uniqid = require('uniqid');
 const pool = require('../configs/connectDB');
 const bcrypt = require('bcrypt');
+const e = require('express');
 
 const saltRounds = 10;
 const registerService = async (body, res) => {
   let { phone, password, email, fullName, maQuyen } = body;
-  console.log(body);
   const uniId = uniqid();
 
   bcrypt.hash(password, saltRounds, async function (err, hash) {
@@ -20,7 +20,6 @@ const registerService = async (body, res) => {
         message: 'Đăng ký tài khoản thành công',
       });
     } catch (error) {
-      console.log(error.sqlMessage);
       return res.json({
         status: 'Failed',
         message: error.sqlMessage,
@@ -63,15 +62,26 @@ const loginService = async (body, res) => {
 };
 
 const addProfileDoctor = async (req, res) => {
+  const { filename } = req.file;
+
   let { maND } = req.params;
-  const { chuyenNganh, truongTotNghiep, kinhNghiem, lyLichCongTac } = req.body;
+  const { chuyenNganh, truongTotNghiep, kinhNghiem, lyLichCongTac, maKhoa } =
+    req.body;
+  const image = `https://dat-lich-kham.onrender.com/${filename}`;
 
   try {
     await pool.execute(
-      'INSERT INTO tblbacsi(chuyenNganh, truongTotNghiep, kinhNghiem, lyLichCongTac, maND) VALUES (?,?,?,?,?)',
-      [chuyenNganh, truongTotNghiep, kinhNghiem, lyLichCongTac, maND]
+      'INSERT INTO tblbacsi(chuyenNganh, truongTotNghiep, kinhNghiem, lyLichCongTac,maKhoa, maND,avatar) VALUES (?,?,?,?,?,?,?)',
+      [
+        chuyenNganh,
+        truongTotNghiep,
+        kinhNghiem,
+        lyLichCongTac,
+        maKhoa,
+        maND,
+        image,
+      ]
     );
-    console.log(req.body, maND);
     return res.json({
       status: 'OK',
       message: 'Thêm thông tin bác sĩ khoản thành công',
@@ -83,32 +93,57 @@ const addProfileDoctor = async (req, res) => {
 
 const editProfileDoctor = async (req, res) => {
   let { maND } = req.params;
-  const { chuyenNganh, truongTotNghiep, kinhNghiem, lyLichCongTac } = req.body;
+  const { chuyenNganh, truongTotNghiep, kinhNghiem, lyLichCongTac, maKhoa } =
+    req.body;
 
-  try {
-    await pool.execute(
-      'UPDATE tblbacsi set chuyenNganh = ?, truongTotNghiep= ?, kinhNghiem= ?, lyLichCongTac= ? where maND = ?',
-      [chuyenNganh, truongTotNghiep, kinhNghiem, lyLichCongTac, maND]
-    );
-    return res.json({
-      status: 'OK',
-      message: 'Cập nhật thông tin bác sĩ khoản thành công',
-    });
-  } catch (error) {
-    return res.status(404).json({ err: error });
+  console.log(req.body);
+  if (req.file) {
+    const image = `https://dat-lich-kham.onrender.com/${req.file.filename}`;
+    console.log(image);
+    try {
+      await pool.execute(
+        'UPDATE tblbacsi set chuyenNganh = ?, truongTotNghiep= ?, kinhNghiem= ?, lyLichCongTac= ?, maKhoa= ?, avatar= ? where maND = ?',
+        [
+          chuyenNganh,
+          truongTotNghiep,
+          kinhNghiem,
+          lyLichCongTac,
+          maKhoa,
+          image,
+          maND,
+        ]
+      );
+      return res.json({
+        status: 'OK',
+        message: 'Cập nhật thông tin bác sĩ khoản thành công',
+      });
+    } catch (error) {
+      return res.status(404).json({ err: error });
+    }
+  } else {
+    try {
+      await pool.execute(
+        'UPDATE tblbacsi set chuyenNganh = ?, truongTotNghiep= ?, kinhNghiem= ?, lyLichCongTac= ?, maKhoa= ? where maND = ?',
+        [chuyenNganh, truongTotNghiep, kinhNghiem, lyLichCongTac, maKhoa, maND]
+      );
+      return res.json({
+        status: 'OK',
+        message: 'Cập nhật thông tin bác sĩ khoản thành công',
+      });
+    } catch (error) {
+      return res.status(404).json({ err: error });
+    }
   }
 };
 
 const editProfileUserService = async (req, res) => {
   let { maND } = req.params;
-  console.log(req.body, maND);
-  const { hoTen, SDT, CMND, email, gioiTinh, diaChi, ngheNghiep, ngaySinh } =
-    req.body;
+  const { hoTen, SDT, email, gioiTinh, ngheNghiep, ngaySinh } = req.body;
 
   try {
     await pool.execute(
-      'UPDATE tblnguoidung set ngaySinh= ?, hoTen = ?, SDT= ?, CMND= ?, email= ?, gioiTinh= ?, diaChi= ?, ngheNghiep= ? where maND = ?',
-      [ngaySinh, hoTen, SDT, CMND, email, gioiTinh, diaChi, ngheNghiep, maND]
+      'UPDATE tblnguoidung set ngaySinh= ?, hoTen = ?, SDT= ?, email= ?, gioiTinh= ?, ngheNghiep= ? where maND = ?',
+      [ngaySinh, hoTen, SDT, email, gioiTinh, ngheNghiep, maND]
     );
     const [rows, field] = await pool.execute(
       `select * from tblnguoidung where maND = '${maND}'`
@@ -116,6 +151,26 @@ const editProfileUserService = async (req, res) => {
     return res.json({
       status: 'OK',
       message: 'Cập nhật thông tin người dùng thành công',
+      user: rows,
+    });
+  } catch (error) {
+    return res.status(404).json({ err: error });
+  }
+};
+const editRoleService = async (req, res) => {
+  let { maND, maQuyen } = req.body;
+
+  try {
+    await pool.execute('UPDATE tblnguoidung set maQuyen= ? where maND = ?', [
+      maQuyen,
+      maND,
+    ]);
+    const [rows, field] = await pool.execute(
+      `select * from tblnguoidung where maND = '${maND}'`
+    );
+    return res.json({
+      status: 'OK',
+      message: 'Cập nhật quyền người dùng thành công',
       user: rows,
     });
   } catch (error) {
@@ -130,7 +185,6 @@ const getProfileDoctor = async (req, res) => {
     const [rows, fields] = await pool.execute(
       `select * from tblbacsi where maND = '${maND}'`
     );
-    console.log(req.body, maND);
     return res.json({
       status: 'OK',
       message: 'Get thông tin bác sĩ thành công',
@@ -142,19 +196,43 @@ const getProfileDoctor = async (req, res) => {
 };
 
 const getAllUserService = async (req, res) => {
+  const { role } = req.query;
   try {
-    const [rows, field] = await pool.execute(
-      `select * from tblnguoidung, tblquyen where tblnguoidung.maQuyen = tblquyen.maQuyen`
-    );
-    return res.json({
-      status: 'OK',
-      message: 'Danh sách người dùng',
-      users: rows,
-      totalData: rows.length,
-    });
+    if (role) {
+      const [rows, field] = await pool.execute(
+        `select * from tblnguoidung, tblquyen, tblbacsi, tblkhoa
+        where tblnguoidung.maQuyen = tblquyen.maQuyen and tblnguoidung.maQuyen='${role}' and tblbacsi.maND = tblnguoidung.maND and tblkhoa.maKhoa = tblbacsi.maKhoa`
+      );
+      return res.json({
+        status: 'OK',
+        message: 'Danh sách người dùng',
+        users: rows,
+        totalData: rows.length,
+      });
+    } else {
+      const [rows, field] = await pool.execute(
+        `select * from tblnguoidung, tblquyen where tblnguoidung.maQuyen = tblquyen.maQuyen`
+      );
+      return res.json({
+        status: 'OK',
+        message: 'Danh sách người dùng',
+        users: rows,
+        totalData: rows.length,
+      });
+    }
   } catch (error) {
     return res.status(404).json({ err: error });
   }
+};
+
+const countNguoiDung = async (res) => {
+  console.log('test');
+  try {
+    const [rows, fields] = await pool.execute(`SELECT * from tblnguoidung`);
+    return res.status(200).json({
+      total: rows.length,
+    });
+  } catch (error) {}
 };
 
 module.exports = {
@@ -165,4 +243,6 @@ module.exports = {
   getProfileDoctor,
   editProfileUserService,
   getAllUserService,
+  editRoleService,
+  countNguoiDung,
 };

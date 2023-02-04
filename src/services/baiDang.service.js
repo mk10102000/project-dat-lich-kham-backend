@@ -6,7 +6,7 @@ const postBaiDangService = async (req, res) => {
   const { tieude, mota, maND, noidung } = req.body;
 
   const uniId = uniqid();
-  const image = `http://localhost:5000/${filename}`;
+  const image = `https://dat-lich-kham.onrender.com/${filename}`;
   const ngaydang = new Date();
 
   try {
@@ -27,12 +27,10 @@ const postBaiDangService = async (req, res) => {
 };
 
 const eidtBaiDangService = async (req, res) => {
-  //   const { filename } = req.file;
-  console.log(req.file);
   const { tieude, mota, noidung, maND } = req.body;
   const { id } = req.params;
   if (req.file) {
-    const image = `http://localhost:5000/${req.file.filename}`;
+    const image = `https://dat-lich-kham.onrender.com/${req.file.filename}`;
     try {
       await pool.execute(
         `UPDATE tblbaidang set tieude= ?, mota= ?, anh= ?, noidung= ? WHERE mabaidang= ? and maND= ?`,
@@ -104,9 +102,28 @@ const getChiTietBaiDangService = async (req, res) => {
   }
 };
 
+const deletePostService = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [rows, fields] = await pool.execute(
+      `DELETE from tblbaidang where mabaidang = '${id}'`
+    );
+    return res.status(200).json({
+      status: 200,
+      message: 'Xóa bài đăng thành công',
+    });
+  } catch (error) {
+    return res.status(400).json({
+      status: 400,
+      message: 'Xóa bài đăng',
+    });
+  }
+};
+
 module.exports = {
   postBaiDangService,
   getTatCaBaiDangService,
   getChiTietBaiDangService,
   eidtBaiDangService,
+  deletePostService,
 };
